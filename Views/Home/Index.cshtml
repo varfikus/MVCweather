@@ -1,0 +1,100 @@
+﻿@model MVCweather.Models.WeatherViewModel
+@{
+    ViewData["Title"] = "Home Page";
+    var now = DateTime.Now.TimeOfDay;
+    bool isNightTime = (now >= new TimeSpan(19, 0, 0) || now <= new TimeSpan(6, 0, 0));
+}
+<div class="container">
+    <div class="upper-data">
+        @if (Model.Weather.Any())
+        {
+            var weatherCondition = Model.Weather.First().Main.ToLower();
+            <div class="bg-img">
+                <img id="clearpic" src="@Url.Content("~/images/clear.jpg")" class="@(weatherCondition == "clear" && !isNightTime ? "visible" : "hidden")">
+                <img id="cloudpic" src="@Url.Content("~/images/clouds.jpg")" class="@(Model.Clouds.All >= 50 && !isNightTime ? "visible" : "hidden")">
+                <img id="hotpic" src="@Url.Content("~/images/hot.jpg")" class="@(Model.Main.Temp >= 35 && !isNightTime ? "visible" : "hidden")">
+                <img id="coldpic" src="@Url.Content("~/images/cold.jpg")" class="@(Model.Main.Temp <= 10 ? "visible" : "hidden")">
+                <img id="rainpic" src="@Url.Content("~/images/rain.jpg")" class="@(weatherCondition == "rain" && !isNightTime ? "visible" : "hidden")">
+                <img id="rainnightpic" src="@Url.Content("~/images/rainnight.jpg")" class="@(weatherCondition == "rain" && isNightTime ? "visible" : "hidden")">
+                <img id="clearnightpic" src="@Url.Content("~/images/clearnight.jpg")" class="@(isNightTime ? "visible" : "hidden")">
+            </div>
+        }
+        <div class="weather-data foggy-bg">
+            <div class="location">@Model.Name</div>
+            <div class="temperature">@Model.Main.Temp °C</div>
+        </div>
+    </div>
+    <div class="lower-data foggy-bg">
+        <div class="more-info-label">More Information</div>
+        <div class="more-info-container">
+            <div class="info-block">
+                <div class="info-block-label">
+                    <img src="@Url.Content("~/images/temp-icon.png")">
+                    <span>Feels</span>
+                </div>
+                <div class="info-block-value">@Model.Main.Feels_Like °C</div>
+            </div>
+            <div class="info-block">
+                <div class="info-block-label">
+                    <img src="@Url.Content("~/images/rain-icon.png")">
+                    <span>Humidity</span>
+                </div>
+                <div class="info-block-value">@Model.Main.Humidity %</div>
+            </div>
+            <div class="info-block">
+                <div class="info-block-label">
+                    <img src="@Url.Content("~/images/wind-icon.png")">
+                    <span>Wind</span>
+                </div>
+                <div class="info-block-value">@Model.Wind.Speed m/s</div>
+            </div>
+        </div>
+        <button id="more">Show more</button>
+        <div class="more-data foggy-bg">
+            <p>Pressure: @Model.Main.Pressure hPa</p>
+            <p>Humidity: @Model.Main.Humidity %</p>
+            <p>Wind Speed: @Model.Wind.Speed m/s</p>
+            <p>Wind Direction: @Model.Wind.Deg &deg;</p>
+
+            @if (Model.Rain != null)
+            {
+                <p>Rain (last 1h): @Model.Rain.OneHour mm</p>
+            }
+
+            <p>Cloudiness: @Model.Clouds.All %</p>
+            <p>Sunrise: @DateTimeOffset.FromUnixTimeSeconds(Model.Sys.Sunrise).LocalDateTime.ToString("HH:mm:ss")</p>
+            <p>Sunset: @DateTimeOffset.FromUnixTimeSeconds(Model.Sys.Sunset).LocalDateTime.ToString("HH:mm:ss")</p>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var moreButton = document.getElementById("more");
+            var moreData = document.querySelector(".more-data");
+
+            moreButton.addEventListener("click", function () {
+                if (moreData.classList.contains("show")) {
+                    moreData.style.height = moreData.scrollHeight + "px"; 
+                    window.getComputedStyle(moreData).height; 
+                    moreData.classList.remove("show");
+                    moreData.style.height = "0"; 
+                    moreButton.textContent = "Show more";
+                } else {
+                    moreData.classList.add("show");
+                    var height = moreData.scrollHeight + "px"; 
+                    moreData.style.height = "0"; 
+                    window.getComputedStyle(moreData).height;
+                    moreData.style.height = height; 
+                    moreButton.textContent = "Show less";
+                }
+            });
+
+            moreData.addEventListener("transitionend", function () {
+                if (!moreData.classList.contains("show")) {
+                    moreData.style.height = null; 
+                }
+            });
+        });
+    </script>
